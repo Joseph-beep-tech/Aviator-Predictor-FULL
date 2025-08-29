@@ -41,6 +41,9 @@
             label3 = new Label();
             label2 = new Label();
             timer1 = new System.Windows.Forms.Timer(components);
+            txtAviatorUrl = new TextBox();
+            btnFetchSeed = new Button();
+            label6 = new Label();
             panel4.SuspendLayout();
             panel3.SuspendLayout();
             SuspendLayout();
@@ -122,7 +125,6 @@
             button3.TabIndex = 17;
             button3.Text = "START";
             button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
             // 
             // button2
             // 
@@ -136,7 +138,6 @@
             button2.TabIndex = 16;
             button2.Text = "NEXT";
             button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
             // 
             // gameseed
             // 
@@ -172,12 +173,46 @@
             // 
             timer1.Tick += timer1_Tick;
             // 
+            // txtAviatorUrl
+            // 
+            txtAviatorUrl.Location = new Point(225, 150);
+            txtAviatorUrl.Name = "txtAviatorUrl";
+            txtAviatorUrl.Size = new Size(211, 23);
+            txtAviatorUrl.TabIndex = 21;
+            // 
+            // btnFetchSeed
+            // 
+            btnFetchSeed.FlatAppearance.BorderColor = Color.White;
+            btnFetchSeed.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 192, 0);
+            btnFetchSeed.FlatStyle = FlatStyle.Flat;
+            btnFetchSeed.ForeColor = Color.White;
+            btnFetchSeed.Location = new Point(443, 150);
+            btnFetchSeed.Name = "btnFetchSeed";
+            btnFetchSeed.Size = new Size(50, 23);
+            btnFetchSeed.TabIndex = 22;
+            btnFetchSeed.Text = "FETCH";
+            btnFetchSeed.UseVisualStyleBackColor = true;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Microsoft Sans Serif", 14.25F, FontStyle.Bold, GraphicsUnit.Point);
+            label6.ForeColor = Color.Lime;
+            label6.Location = new Point(264, 110);
+            label6.Name = "label6";
+            label6.Size = new Size(100, 24);
+            label6.TabIndex = 23;
+            label6.Text = "AVIATOR URL";
+            // 
             // FrmAviator
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(46, 51, 73);
             ClientSize = new Size(765, 522);
+            Controls.Add(label6);
+            Controls.Add(btnFetchSeed);
+            Controls.Add(txtAviatorUrl);
             Controls.Add(panel4);
             Controls.Add(gameseedpublic);
             Controls.Add(panel3);
@@ -212,5 +247,8 @@
         private Label label3;
         private Label label2;
         private System.Windows.Forms.Timer timer1;
+        private TextBox txtAviatorUrl;
+        private Button btnFetchSeed;
+        private Label label6;
     }
 }

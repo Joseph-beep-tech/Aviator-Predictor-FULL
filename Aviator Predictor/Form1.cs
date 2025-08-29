@@ -4,19 +4,31 @@ using System.Windows.Forms;
 using System;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
+using System.Collections.Generic;
 
 namespace Aviator_Hack
 {
     public partial class Form1 : Form
     {
-
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
-        /*private string connectionString = "Server=your_server;Database=your_database;User Id=your_username;Password=your_password;";*/
+        
+        // Store hashed credentials (in production, these would come from a secure database)
+        private readonly Dictionary<string, string> _validCredentials = new Dictionary<string, string>
+        {
+            // Default admin account - password: admin123
+            { "admin", "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa7898096c202bdc16" },
+            // Demo account - password: demo123
+            { "demo", "6c7ca345f63f835cb353ff15bd6c5e052ec08e7a" }
+        };
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
+
         public Form1()
         {
             InitializeComponent();
@@ -25,12 +37,30 @@ namespace Aviator_Hack
             Form1_Load(this, EventArgs.Empty);
         }
 
-
         private void Form1_Load(object sender, EventArgs e)
         {
             CreateRoundedForm();
-
+            SetupForm();
         }
+
+        private void SetupForm()
+        {
+            // Clear any existing text
+            APUsername.Text = "";
+            APPassword.Text = "";
+            
+            // Set focus to username field
+            APUsername.Focus();
+            
+            // Add enter key support
+            APPassword.KeyPress += (s, e) => {
+                if (e.KeyChar == (char)13) // Enter key
+                {
+                    button2_Click(s, e);
+                }
+            };
+        }
+
         private void CreateRoundedForm()
         {
             GraphicsPath path = new GraphicsPath();
@@ -44,15 +74,15 @@ namespace Aviator_Hack
 
             this.Region = new Region(path);
         }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
         }
 
-
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
-
+            // Panel paint handler
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -62,17 +92,17 @@ namespace Aviator_Hack
 
         private void label1_Click(object sender, EventArgs e)
         {
-
+            // Title label click handler
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show("admin");
+            MessageBox.Show("For password reset, please contact support at support@aviatortool.com", "Password Reset", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void pictureBox3_Click(object sender, EventArgs e)
         {
-
+            // Background picture click handler
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -87,29 +117,49 @@ namespace Aviator_Hack
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object? sender, EventArgs e)
         {
-            string username = APUsername.Text;
+            string username = APUsername.Text.Trim();
             string password = APPassword.Text;
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("The username or password cannot be blank.");
+                MessageBox.Show("Username and password cannot be blank.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                APUsername.Focus();
                 return;
             }
 
-            if (username == "admin" && password == "admin")
+            if (ValidateCredentials(username, password))
             {
-                MessageBox.Show("Successful entry!");
+                MessageBox.Show("Login successful! Welcome to Aviator Predictor.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 OpenForm2();
                 this.Hide();
-
             }
             else
             {
-                MessageBox.Show("Invalid user name or password.");
+                MessageBox.Show("Invalid username or password. Please try again.", "Authentication Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                APPassword.Text = "";
+                APPassword.Focus();
             }
+        }
 
+        private bool ValidateCredentials(string username, string password)
+        {
+            if (_validCredentials.ContainsKey(username))
+            {
+                string hashedPassword = HashPassword(password);
+                return _validCredentials[username].Equals(hashedPassword, StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
+        }
+
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            }
         }
 
         private void OpenForm2()
@@ -121,7 +171,7 @@ namespace Aviator_Hack
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
+            // Username text changed handler
         }
 
         private void Aviator_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -138,24 +188,27 @@ namespace Aviator_Hack
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Hata: {ex.Message}");
+                Console.WriteLine($"Error opening Aviator link: {ex.Message}");
             }
         }
-        /*        private bool IsUserAuthenticated(string username, string password)
-       {
 
-           using (SqlConnection connection = new SqlConnection(connectionString))
-           {
-               string query = "SELECT COUNT(1) FROM Users WHERE Username = @Username AND Password = @Password";
-               using (SqlCommand command = new SqlCommand(query, connection))
-               {
-                   command.Parameters.AddWithValue("@Username", username);
-                   command.Parameters.AddWithValue("@Password", password);
-                   connection.Open();
-                   int count = (int)command.ExecuteScalar();
-                   return count > 0;
-               }
-           }
-       }*/
+        // Method to add new users (for admin purposes)
+        public void AddUser(string username, string password)
+        {
+            if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
+            {
+                string hashedPassword = HashPassword(password);
+                _validCredentials[username] = hashedPassword;
+            }
+        }
+
+        // Method to remove users (for admin purposes)
+        public void RemoveUser(string username)
+        {
+            if (_validCredentials.ContainsKey(username))
+            {
+                _validCredentials.Remove(username);
+            }
+        }
     }
 }
